@@ -1,61 +1,101 @@
+
 --create tables
+DROP DATABASE killbase;
+
+CREATE DATABASE killbase;
+
+\c killbase;
+
 create table assassins (
   id serial primary key,
   full_name text,
-  codenames foreign(codenames.id),
   weapon text,
-  contact_information text,
-  age numeric,
-  price numeric,
-  rating numeric(3,1),
-  kills numeric
+  age integer,
+  price integer,
+  rating numeric(2,1),
+  kills integer
 );
+insert into assassins (full_name, weapon, age, price, rating, kills)
+  values
+  ('Alexander Duggan', 'Sniper rifle', 31, 45, 7.5, 28),
+  ('Anton Chigurh', 'Pneumatic bolt gun', 52, 40, 9, 72),
+  (null, 'Pistol', 28, 20, 6.5, 35),
+  ('Jason Bourne', 'Parkour', 27, 25, 7, 48), ('John Wick', 'Lots of guns', 35, 50, 9.5, 433),
+  ('Jules Winnfield', 'Pistol', 26, 15, 6.5, 13), ('Leon', 'Everything', 41, 30, 8.5, 87), ('Nikita Mears', 'Silenced pistols', 28, 30, 7, 32),
+  ('Pickle Rick', 'Lasers and office supplies', 60, 0, 8, 24);
 
-create table contracts (
-  id serial primary key,
-  target_name foreign(targets.id),
-  Client_name foreign(clients.id),
-  budget numeric
-  completed boolean Not NULL,
-  completed_by foreign(assassins.id)
+create table codenames (
+  assassins_id integer references assassins (id),
+  name text
 );
+insert into codenames (assassins_id, name)
+  values
+  (1, 'The Jackal'),
+  (2, 'Old Man'),
+  (3, 'Ghost Dog'),
+  (5, 'Baba Yaga'),
+  (7, 'The Professional'),
+  (8, 'Nikita'),
+  (8, 'La Femme Nikita'),
+  (9, 'Solenya');
 
 Create table targets (
   id serial primary key,
-  Name varchar(30),
-  Location varchar(40),
-  Photo varchar(40),
-  Security_level numeric
+  Name text,
+  Location text,
+  Photo text,
+  Security_level integer
 );
+insert into targets (Name, Location, Photo, Security_level)
+  Values
+  ('Butch Coolidge', 'Los Angeles', 'https://goo.gl/LCquZj', 3),
+  ('The Jaguar', 'Russian Embassy', 'https://goo.gl/6JWsiv', 9),
+  ('Norman Stansfield', 'Manhattan', 'https://i.imgur.com/mdIk33E.jpg', 7),
+  ('Santino D''Antonio', 'Continental Hotel', 'https://goo.gl/fUPkYy', 10),
+  ('Sonny Volerio', 'Queens', 'https://goo.gl/8DHYUS', 4);
 
 create table clients (
   name text,
   id serial primary key
 );
+insert into clients (name)
+  values
+  ('Marcellus Wallace'),
+  ('Concreto'),
+  ('Mathilda'),
+  ('Winston'),
+  ('Ray Vargo');
+
+create table contracts (
+  id serial primary key,
+  target_id integer references targets (id),
+  client_id integer references clients (id),
+  budget integer,
+  completed boolean Not NULL,
+  assassins_id integer references assassins (id)
+);
+insert into contracts (target_id, client_id, budget, completed, assassins_id)
+  values
+  (1, 1, 40, false, null),
+  (2, 2, 70, false, null),
+  (3, 3, 35, false, null),
+  (4, 4, 25, false, null),
+  (5, 5, 10, false, null);
 
 create table assassins_contracts (
-  assassins foreign key,
-  contract foreign key
+  assassins_id integer references assassins (id),
+  contract_id integer references contracts (id)
 );
-
-create table codenames (
-  name varchar(30),
-  id serial primary key
-);
-
---inserts
-
-insert into codenames (name) values ('The Jackal'), ('Old Man'), ('Ghost Dog'), ('Baba Yaga'), ('The Professional'), ('Nikita, La Femme Nikita'), ('Solenya');
-
-insert into clients (name) values ('Marcellus Wallace'), ('Concreto'), ('Mathilda'), ('Winston'), ('Ray Vargo');
-
-insert into targets (Name, Location, Photo, Security_level) Values ('Butch Coolidge', 'Los Angeles', 'https://goo.gl/LCquZj', 3), ('The Jaguar', 'Russian Embassy', 'https://goo.gl/6JWsiv', 9), ('Norman Stansfield', 'Manhattan', 'https://i.imgur.com/mdIk33E.jpg', 7), ('Santino D''Antonio', 'Continental Hotel', 'https://goo.gl/fUPkYy', 10), ('Sonny', 'Queens', 'https://goo.gl/8DHYUS', 4);
-
-insert into contracts (target_name, Client_name, budget) values (1, 1, 40), (2, 2, 70), (3, 3, 35), (4, 4, 25), (5, 5, 10);
-
-insert into assassins (full_name, codenames, weapon, age, price, rating, kills) values ('Alexander Duggan', 1,'Sniper rifle', 31, 45, 7.5, 28), ('Anton Chigurh', 2,'Pneumatic bolt gun', 52, 40, 9, 72), (3, 'Pistol', 28, 20, 6.5, 35), ('Jason Bourne', 'Parkour', 27, 25, 7, 4), ('John Wick', 4, 'Lots of guns', 35, 50, 9.5, 433), ('Jules Winnfield', 'Pistol', 26, 15, 6.5, 13), ('Leon', 5, 'Everything', 41, 30, 8.5, 87), ('Nikita Mears', 6, 'Silenced pistols', 28, 30, 7, 32), ('Pickle Rick', 7, 'Lasers and office supplies', 60, 0, 8, 24);
-
-insert into assassins_contracts (assassins, contract) values (6,1), (1,2), (5,2), (7,3), (9,5), (6,4), (8,3), (3,1);
+insert into assassins_contracts (assassins_id, contract_id)
+  values
+   (6,1),
+   (1,2),
+   (5,2),
+   (7,3),
+   (9,5),
+   (6,4),
+   (8,3),
+   (3,1);
 
 --questions
 --1 Select all the assassins, sorted by number of kills.
@@ -92,3 +132,9 @@ select
 --15 The contract on Norman Stansfield has been rescinded. Remove it (and any associated data) from the database.
 
 --16 Winston has taken out a contract on John Wick! (Security 9, budget 100) We may have to rethink the way we're structuring our data. How can we refactor our database schema to allow a person to be an assassin, a client, or the target of a contract? Do that, then assign all assassins not already on a job to this new contract.
+select * from assassins;
+select * from contracts;
+select * from targets;
+select * from clients;
+select * from codenames;
+select * from assassins_contracts;
